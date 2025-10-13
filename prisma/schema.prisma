@@ -1,37 +1,39 @@
 generator client {
-   provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-   provider = "postgresql"
-   url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-   id        Int       @id @default(autoincrement())
-   name      String
-   email     String    @unique
-   accounts  Account[]
-   createdAt DateTime  @default(now())
-   updatedAt DateTime  @updatedAt
+  id           Int       @id @default(autoincrement())
+  fullName     String
+  email        String    @unique
+  password     String
+  accounts     Account[]
+  refreshToken String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Account {
-   id            Int           @id @default(autoincrement())
-   accountNumber String        @unique
-   balance       Decimal       @default(0.0)
-   userId        Int
-   User          User          @relation(fields: [userId], references: [id])
-   transactions  Transaction[]
-   createdAt     DateTime      @default(now())
+  id            Int           @id @default(autoincrement())
+  accountNumber String        @unique
+  balance       Decimal       @default(0.0)
+  userId        Int
+  User          User          @relation(fields: [userId], references: [id])
+  transactions  Transaction[]
+  createdAt     DateTime      @default(now())
 }
 
 model Transaction {
-   id            Int      @id @default(autoincrement())
-   amount        Decimal
-   fromAccountId Int
-   toAccountId   Int
-   createdAt     DateTime @default(now())
-   Account       Account? @relation(fields: [accountId], references: [id])
-   accountId     Int?
+  id            Int      @id @default(autoincrement())
+  amount        Decimal
+  fromAccountId Int
+  toAccountId   Int
+  createdAt     DateTime @default(now())
+  Account       Account? @relation(fields: [accountId], references: [id])
+  accountId     Int?
 }
