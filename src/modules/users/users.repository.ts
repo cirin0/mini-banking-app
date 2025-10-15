@@ -7,7 +7,7 @@ import { User } from './users.model';
 export class UsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findById(id: number): Promise<User | null> {
+  async findById(id: string): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: { id },
       select: {
@@ -66,7 +66,7 @@ export class UsersRepository {
     });
   }
 
-  async update(id: number, data: Prisma.UserUpdateInput): Promise<User> {
+  async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
     return this.prisma.user.update({
       where: { id },
       data,
@@ -81,7 +81,7 @@ export class UsersRepository {
   }
 
   async updateRefreshToken(
-    userId: number,
+    userId: string,
     hashedToken: string | null,
   ): Promise<User> {
     return this.prisma.user.update({
@@ -97,7 +97,7 @@ export class UsersRepository {
     });
   }
 
-  async delete(id: number): Promise<User> {
+  async delete(id: string): Promise<User> {
     return this.prisma.user.delete({
       where: { id },
       select: {

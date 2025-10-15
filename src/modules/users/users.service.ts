@@ -7,7 +7,7 @@ import { UsersRepository } from './users.repository';
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async getById(id: number): Promise<User | null> {
+  async getById(id: string): Promise<User | null> {
     return this.usersRepository.findById(id);
   }
 
@@ -27,15 +27,15 @@ export class UsersService {
     return this.usersRepository.create(data);
   }
 
-  async setRefreshToken(userId: number, hashedToken: string | null) {
+  async setRefreshToken(userId: string, hashedToken: string | null) {
     return this.usersRepository.updateRefreshToken(userId, hashedToken);
   }
 
-  async updateUser(id: number, data: Prisma.UserUpdateInput) {
+  async updateUser(id: string, data: Prisma.UserUpdateInput) {
     return this.usersRepository.update(id, data);
   }
 
-  async deleteUser(id: number) {
+  async deleteUser(id: string) {
     return this.usersRepository.delete(id);
   }
 }

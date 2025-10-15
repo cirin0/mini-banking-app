@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 interface AuthenticatedRequest extends express.Request {
   user: {
-    id: number;
+    id: string;
     email: string;
   };
 }
@@ -22,7 +22,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   async getProfile(@Req() req: AuthenticatedRequest) {
-    return this.usersService.getById(Number(req.user.id));
+    return this.usersService.getById(req.user.id);
   }
 
   @Get('email/:email')
@@ -32,6 +32,6 @@ export class UserController {
 
   @Get(':id')
   async getUserById(@Param('id') id: string) {
-    return this.usersService.getById(+id);
+    return this.usersService.getById(id);
   }
 }
