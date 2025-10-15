@@ -7,12 +7,12 @@ import {
   Req,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthService } from 'src/auth/auth.service';
-import { LoginDto } from 'src/auth/dto/login.dto';
-import { RegisterDto } from 'src/auth/dto/register.dto';
 import express from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { User } from 'src/users/users.model';
+import { User } from 'src/modules/users/users.model';
+import { AuthService } from './auth.service';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 interface AuthenticatedRequest extends express.Request {
   user: {

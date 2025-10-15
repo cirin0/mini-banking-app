@@ -3,12 +3,12 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from 'src/modules/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { CookieOptions, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { User } from 'src/users/users.model';
+import { User } from 'src/modules/users/users.model';
 import { AuthRepository } from './auth.repository';
 
 interface UserPayload {

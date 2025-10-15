@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { UsersService } from '../users/users.service';
-import { AuthRepository } from './auth.repository';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
@@ -16,6 +14,8 @@ jest.mock('bcrypt', () => ({
 }));
 
 import * as bcrypt from 'bcrypt';
+import { UsersService } from 'src/modules/users/users.service';
+import { AuthRepository } from './auth.repository';
 
 describe('AuthService', () => {
   let service: AuthService;
