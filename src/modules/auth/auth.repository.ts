@@ -17,7 +17,7 @@ export class AuthRepository {
     });
   }
 
-  async findByIdWithRefreshToken(id: number) {
+  async findByIdWithRefreshToken(id: string) {
     return this.prisma.user.findUnique({
       where: { id },
       select: {

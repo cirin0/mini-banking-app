@@ -16,7 +16,7 @@ import { LoginDto } from './dto/login.dto';
 
 interface AuthenticatedRequest extends express.Request {
   user: {
-    id: number;
+    id: string;
     email: string;
   };
 }
@@ -45,7 +45,7 @@ export class AuthController {
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: express.Response,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     return this.authService.handleLogin(dto.email, dto.password, res);
   }
 
@@ -62,7 +62,7 @@ export class AuthController {
   async refreshTokens(
     @Req() req: express.Request,
     @Res({ passthrough: true }) res: express.Response,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const refreshToken = this.extractRefreshToken(req);
     return this.authService.handleRefreshTokens(refreshToken, res);
   }

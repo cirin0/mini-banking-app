@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from 'src/modules/users/users.service';
+import { AccountsService } from 'src/modules/accounts/accounts.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { CookieOptions, Response } from 'express';
@@ -12,7 +13,7 @@ import { User } from 'src/modules/users/users.model';
 import { AuthRepository } from './auth.repository';
 
 interface UserPayload {
-  id: number;
+  id: string;
   email: string;
 }
 
@@ -24,6 +25,7 @@ export class AuthService {
 
   constructor(
     private readonly usersService: UsersService,
+    private readonly accountsService: AccountsService,
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -86,6 +88,9 @@ export class AuthService {
       email: email,
       password: hashedPassword,
     });
+
+    await this.accountsService.createAccountForUser(user.id);
+
     return user;
   }
 
@@ -115,12 +120,12 @@ export class AuthService {
     return tokens;
   }
 
-  private async revokeRefreshToken(userId: number): Promise<void> {
+  private async revokeRefreshToken(userId: string): Promise<void> {
     await this.usersService.setRefreshToken(userId, null);
   }
 
   private async refreshTokens(
-    userId: number,
+    userId: string,
     refreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.authRepository.findByIdWithRefreshToken(userId);
@@ -150,7 +155,7 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const decoded = this.jwtService.verify<{
-        sub: number;
+        sub: string;
         email: string;
       }>(token, {
         secret: this.configService.getOrThrow('JWT_REFRESH_TOKEN_SECRET'),
@@ -166,7 +171,7 @@ export class AuthService {
     email: string,
     password: string,
     res: Response,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.validateUser(email, password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -175,11 +180,14 @@ export class AuthService {
     const tokens = await this.login(user);
     this.setRefreshTokenCookie(res, tokens.refreshToken);
 
-    return { accessToken: tokens.accessToken };
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
   }
 
   async handleLogout(
-    userId: number,
+    userId: string,
     res: Response,
   ): Promise<{ message: string; statusCode: number }> {
     await this.revokeRefreshToken(userId);
@@ -194,10 +202,13 @@ export class AuthService {
   async handleRefreshTokens(
     token: string,
     res: Response,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const tokens = await this.verifyAndRefreshTokens(token);
     this.setRefreshTokenCookie(res, tokens.refreshToken);
 
-    return { accessToken: tokens.accessToken };
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
   }
 }
