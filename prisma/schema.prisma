@@ -7,8 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Currency {
+  UAH
+  USD
+  EUR
+}
+
+enum CardType {
+  DEBIT
+  CREDIT
+  PAYROLL
+}
+
 model User {
-  id           Int       @id @default(autoincrement())
+  id           String    @id @default(cuid())
   fullName     String
   email        String    @unique
   password     String
@@ -19,21 +31,47 @@ model User {
 }
 
 model Account {
-  id            Int           @id @default(autoincrement())
-  accountNumber String        @unique
-  balance       Decimal       @default(0.0)
-  userId        Int
-  User          User          @relation(fields: [userId], references: [id])
-  transactions  Transaction[]
-  createdAt     DateTime      @default(now())
+  id        String   @id @default(cuid())
+  balance   Decimal  @default(0.0)
+  currency  Currency
+  cards     Card[]
+  userId    String
+  User      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Card {
+  id                   String        @id @default(cuid())
+  cardNumber           String        @unique
+  cardType             CardType
+  expiryDate           DateTime
+  hashedCvv            String
+  accountId            String
+  account              Account       @relation(fields: [accountId], references: [id])
+  sentTransactions     Transaction[] @relation("SentTransactions")
+  receivedTransactions Transaction[] @relation("ReceivedTransactions")
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@index([accountId])
 }
 
 model Transaction {
-  id            Int      @id @default(autoincrement())
-  amount        Decimal
-  fromAccountId Int
-  toAccountId   Int
-  createdAt     DateTime @default(now())
-  Account       Account? @relation(fields: [accountId], references: [id])
-  accountId     Int?
+  id          String   @id @default(cuid())
+  amount      Decimal
+  currency    Currency
+  description String?
+  createdAt   DateTime @default(now())
+
+  fromCardId String
+  fromCard   Card   @relation("SentTransactions", fields: [fromCardId], references: [id])
+
+  toCardId String
+  toCard   Card   @relation("ReceivedTransactions", fields: [toCardId], references: [id])
+
+  @@index([fromCardId])
+  @@index([toCardId])
 }
