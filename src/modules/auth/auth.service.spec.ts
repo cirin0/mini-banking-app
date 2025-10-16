@@ -15,6 +15,7 @@ jest.mock('bcrypt', () => ({
 
 import * as bcrypt from 'bcrypt';
 import { UsersService } from 'src/modules/users/users.service';
+import { AccountsService } from 'src/modules/accounts/accounts.service';
 import { AuthRepository } from './auth.repository';
 
 describe('AuthService', () => {
@@ -25,7 +26,7 @@ describe('AuthService', () => {
   let configService: ConfigService;
 
   const mockUser = {
-    id: 1,
+    id: '1',
     email: 'test@example.com',
     fullName: 'Test User',
     password: 'hashedPassword123',
@@ -35,7 +36,7 @@ describe('AuthService', () => {
   };
 
   const mockUserWithoutPassword = {
-    id: 1,
+    id: '1',
     email: 'test@example.com',
     fullName: 'Test User',
     createdAt: new Date(),
@@ -57,6 +58,12 @@ describe('AuthService', () => {
             getByEmail: jest.fn(),
             createUser: jest.fn(),
             setRefreshToken: jest.fn(),
+          },
+        },
+        {
+          provide: AccountsService,
+          useValue: {
+            createAccountForUser: jest.fn(),
           },
         },
         {
@@ -214,7 +221,10 @@ describe('AuthService', () => {
         mockResponse,
       );
 
-      expect(result).toEqual({ accessToken: mockAccessToken });
+      expect(result).toEqual({
+        accessToken: mockAccessToken,
+        refreshToken: mockRefreshToken,
+      });
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         'refreshToken',
         mockRefreshToken,
@@ -249,9 +259,9 @@ describe('AuthService', () => {
     it('should successfully logout user and clear refresh token', async () => {
       jest.spyOn(usersService, 'setRefreshToken').mockResolvedValue(mockUser);
 
-      const result = await service.handleLogout(1, mockResponse);
+      const result = await service.handleLogout('1', mockResponse);
 
-      expect(usersService.setRefreshToken).toHaveBeenCalledWith(1, null);
+      expect(usersService.setRefreshToken).toHaveBeenCalledWith('1', null);
       expect(mockResponse.clearCookie).toHaveBeenCalledWith('refreshToken', {
         path: '/',
       });
@@ -270,14 +280,14 @@ describe('AuthService', () => {
       const mockHashedRefreshToken = 'hashedRefreshToken';
 
       const userWithRefreshToken = {
-        id: 1,
+        id: '1',
         email: 'test@example.com',
         refreshToken: 'hashedOldRefreshToken',
       };
 
       jest
         .spyOn(jwtService, 'verify')
-        .mockReturnValue({ sub: 1, email: 'test@example.com' });
+        .mockReturnValue({ sub: '1', email: 'test@example.com' });
       jest
         .spyOn(authRepository, 'findByIdWithRefreshToken')
         .mockResolvedValue(userWithRefreshToken);
@@ -297,14 +307,17 @@ describe('AuthService', () => {
         mockResponse,
       );
 
-      expect(result).toEqual({ accessToken: mockNewAccessToken });
+      expect(result).toEqual({
+        accessToken: mockNewAccessToken,
+        refreshToken: mockNewRefreshToken,
+      });
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         'refreshToken',
         mockNewRefreshToken,
         expect.any(Object),
       );
       expect(usersService.setRefreshToken).toHaveBeenCalledWith(
-        1,
+        '1',
         mockHashedRefreshToken,
       );
     });
@@ -325,7 +338,7 @@ describe('AuthService', () => {
         .spyOn(jwtService, 'verify')
         .mockReturnValue({ sub: 1, email: 'test@example.com' });
       jest.spyOn(authRepository, 'findByIdWithRefreshToken').mockResolvedValue({
-        id: 1,
+        id: '1',
         email: 'test@example.com',
         refreshToken: null,
       });
@@ -341,7 +354,7 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedException when refresh token does not match', async () => {
       const userWithRefreshToken = {
-        id: 1,
+        id: '1',
         email: 'test@example.com',
         refreshToken: 'hashedDifferentToken',
       };
