@@ -46,4 +46,21 @@ export class AccountsService {
     }
     return account;
   }
+
+  async depositToAccount(accountId: string, amount: number, userId: string) {
+    const account = await this.getAccountById(accountId);
+    if (account.userId !== userId) {
+      throw new ForbiddenException(
+        `You do not have permission to deposit to this account.`,
+      );
+    }
+    const updatedAccount = await this.accountsRepository.deposit(
+      accountId,
+      amount,
+    );
+    return {
+      message: 'Deposit successful',
+      balance: updatedAccount.balance,
+    };
+  }
 }

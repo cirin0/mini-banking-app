@@ -6,6 +6,17 @@ import { Account, Currency } from '@prisma/client';
 export class AccountsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async deposit(accountId: string, amount: number) {
+    return this.prisma.account.update({
+      where: { id: accountId },
+      data: {
+        balance: {
+          increment: amount,
+        },
+      },
+    });
+  }
+
   async create(userId: string, currency: Currency): Promise<Account> {
     return this.prisma.account.create({
       data: {
@@ -37,8 +48,15 @@ export class AccountsRepository {
         User: {
           select: { fullName: true },
         },
+        cards: {
+          select: {
+            cardNumber: true,
+            cardType: true,
+            paymentSystem: true,
+            expiryDate: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' },
     });
   }
 

@@ -7,10 +7,12 @@ import {
   UseGuards,
   Request,
   ForbiddenException,
+  Req,
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { CreateAccountDto } from './dto/create-account.dto';
+import { DepositDto } from './dto/deposit.dto';
 
 interface RequestWithUser extends Request {
   user: {
@@ -54,5 +56,19 @@ export class AccountsController {
     }
 
     return account;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':accountId/deposit')
+  async deposit(
+    @Param('accountId') accountId: string,
+    @Body() DepositDto: DepositDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.accountsService.depositToAccount(
+      accountId,
+      DepositDto.amount,
+      req.user.id,
+    );
   }
 }
