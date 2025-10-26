@@ -3,10 +3,4 @@
 	"cSpell.words": [
 		"Luhn"
 	],
-	"yaml.schemas": {
-		"file:///home/cirin0/.vscode/extensions/continue.continue-1.2.9-linux-x64/config-yaml-schema.json": [
-			".continue/**/*.yaml",
-			"file:///home/cirin0/.continue/config.yaml"
-		]
-	}
 }
