@@ -50,6 +50,7 @@ export class AccountsRepository {
         },
         cards: {
           select: {
+            id: true,
             cardNumber: true,
             cardType: true,
             paymentSystem: true,
