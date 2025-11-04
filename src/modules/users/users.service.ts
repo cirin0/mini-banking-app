@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { User } from './users.model';
+import { User } from './model/users.model';
 import { UsersRepository } from './users.repository';
+import { Profile } from './model/profile.model';
 
 @Injectable()
 export class UsersService {
@@ -13,6 +14,10 @@ export class UsersService {
 
   async getAllUsers(): Promise<User[]> {
     return this.usersRepository.findAll();
+  }
+
+  async getProfile(id: string): Promise<Profile | null> {
+    return this.usersRepository.findProfileById(id);
   }
 
   async getByEmail(email: string): Promise<User | null> {

@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { User } from './users.model';
+import { User } from './model/users.model';
+import { Profile } from './model/profile.model';
 
 @Injectable()
 export class UsersRepository {
@@ -16,6 +17,35 @@ export class UsersRepository {
         fullName: true,
         createdAt: true,
         updatedAt: true,
+      },
+    });
+  }
+
+  async findProfileById(id: string): Promise<Profile | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        createdAt: true,
+        updatedAt: true,
+        accounts: {
+          select: {
+            id: true,
+            balance: true,
+            currency: true,
+            cards: {
+              select: {
+                id: true,
+                cardNumber: true,
+                cardType: true,
+                expiryDate: true,
+                paymentSystem: true,
+              },
+            },
+          },
+        },
       },
     });
   }

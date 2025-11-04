@@ -9,7 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { CookieOptions, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { User } from 'src/modules/users/users.model';
+import { User } from 'src/modules/users/model/users.model';
 import { AuthRepository } from './auth.repository';
 
 interface UserPayload {

@@ -22,7 +22,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   async getProfile(@Req() req: AuthenticatedRequest) {
-    return this.usersService.getById(req.user.id);
+    return this.usersService.getProfile(req.user.id);
   }
 
   @Get('email/:email')

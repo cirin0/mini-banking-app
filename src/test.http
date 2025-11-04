@@ -1,0 +1,75 @@
+@baseUrl = http://localhost:3000/api
+
+
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "testname2@gmail.com",
+    "password": "testname"
+}
+###
+
+@accessToken = {{login.response.body.accessToken}}
+
+# @name getAccounts
+GET {{baseUrl}}/accounts/my
+Authorization: Bearer {{accessToken}}
+###
+
+@accountId = {{getAccounts.response.body.0.id}}
+
+# @name createAccount
+POST {{baseUrl}}/accounts
+Authorization: Bearer {{accessToken}}
+###
+
+# @name createCard
+POST {{baseUrl}}/cards/{{accountId}}
+Authorization: Bearer {{accessToken}}
+###
+
+
+# @name getCardById
+GET {{baseUrl}}/cards/cmgupfsyi0003hb9bxmtsictk
+Authorization: Bearer {{accessToken}}
+###
+
+# @name getCardsByAccountId
+GET {{baseUrl}}/cards/account/{{accountId}}
+Authorization: Bearer {{accessToken}}
+###
+
+@cardNumber = {{getCardsByAccountId.response.body.0.cardNumber}}
+
+
+# @name getCardByNumber
+GET {{baseUrl}}/cards/number/{{cardNumber}}
+Authorization: Bearer {{accessToken}}
+###
+
+# @name createTransaction
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+		"fromCardNumber": "{{cardNumber}}",
+		"toCardNumber": "7353222031319182",
+		"currency": "UAH",
+		"amount": 100,
+		"description": "Test transaction"
+}
+###
+
+
+# @name deposit
+POST {{baseUrl}}/accounts/{{accountId}}/deposit
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+		"amount": 500
+}
+###
