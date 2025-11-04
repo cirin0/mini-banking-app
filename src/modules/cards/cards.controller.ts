@@ -2,15 +2,24 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { CardsService } from './cards.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateCardDto } from './dto/create-card.dto';
+import { GetCvvDto } from './dto/get-cvv.dto';
+
+interface AuthenticatedRequest {
+  user: {
+    id: string;
+    email: string;
+  };
+}
 
 @Controller('cards')
 export class CardsController {
@@ -54,5 +63,25 @@ export class CardsController {
   @UseGuards(JwtAuthGuard)
   async getCardsByUserId(@Param('userId') userId: string) {
     return this.cardsService.getCardsByUserId(userId);
+  }
+
+  @Get(':cardId/cvv')
+  @UseGuards(JwtAuthGuard)
+  async getCvv(
+    @Param('cardId') cardId: string,
+    @Body() getCvvDto: GetCvvDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.cardsService.getCvvForCard(
+      cardId,
+      getCvvDto.password,
+      req.user.id,
+    );
+  }
+
+  @Delete('account/:accountId')
+  @UseGuards(JwtAuthGuard)
+  async deleteCardsByAccountId(@Param('accountId') accountId: string) {
+    return this.cardsService.deleteCardsByAccountId(accountId);
   }
 }

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { AccountsRepository } from './accounts.repository';
 import { Account, Currency } from '@prisma/client';
+import { Account as AccountModel } from './accounts.model';
 
 @Injectable()
 export class AccountsService {
@@ -35,7 +36,7 @@ export class AccountsService {
     return this.accountsRepository.create(userId, currency);
   }
 
-  async getUserAccounts(userId: string): Promise<Account[]> {
+  async getUserAccounts(userId: string): Promise<AccountModel[]> {
     return this.accountsRepository.findByUserId(userId);
   }
 

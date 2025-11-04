@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CardType, PaymentSystem } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
 import { CardDto } from './dto/card.dto';
 import { generateValidCardNumber } from 'src/common/utils/card-validator.util';
+import { encryptCvv } from 'src/common/utils/crypto.util';
 
 @Injectable()
 export class CardsRepository {
@@ -26,7 +26,7 @@ export class CardsRepository {
     expiryDate.setFullYear(expiryDate.getFullYear() + 3);
 
     const cvv = this.generateCVV();
-    const hashedCvv = await bcrypt.hash(cvv, 10);
+    const encryptedCvv = encryptCvv(cvv);
 
     return this.prisma.card.create({
       data: {
@@ -35,7 +35,7 @@ export class CardsRepository {
         paymentSystem,
         cardNumber,
         expiryDate,
-        hashedCvv,
+        hashedCvv: encryptedCvv,
       },
       select: {
         id: true,
@@ -116,6 +116,43 @@ export class CardsRepository {
         accountId: true,
         createdAt: true,
         updatedAt: true,
+      },
+    });
+  }
+
+  async deleteByAccountId(
+    accountId: string,
+  ): Promise<{ deletedCount: number }> {
+    await this.prisma.transaction.deleteMany({
+      where: {
+        OR: [{ fromCard: { accountId } }, { toCard: { accountId } }],
+      },
+    });
+
+    const result = await this.prisma.card.deleteMany({
+      where: { accountId },
+    });
+    return { deletedCount: result.count };
+  }
+
+  async findByIdWithHashedCvv(cardId: string): Promise<{
+    hashedCvv: string | null;
+    cardNumber: string;
+    expiryDate: Date;
+    account: { id: string; userId: string };
+  } | null> {
+    return this.prisma.card.findUnique({
+      where: { id: cardId },
+      select: {
+        hashedCvv: true,
+        cardNumber: true,
+        expiryDate: true,
+        account: {
+          select: {
+            id: true,
+            userId: true,
+          },
+        },
       },
     });
   }
