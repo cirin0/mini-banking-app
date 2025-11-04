@@ -4,8 +4,4 @@ export interface User {
   fullName: string;
   createdAt: Date;
   updatedAt: Date;
-
-  //relations
-  // accounts?: Account[];
-  // transactions?: Transaction[];
 }

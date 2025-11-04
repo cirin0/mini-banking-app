@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import express from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { User } from 'src/modules/users/users.model';
+import { User } from 'src/modules/users/model/users.model';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
