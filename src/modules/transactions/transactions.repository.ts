@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Currency, Prisma } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { TransactionDto } from './dto/transaction.dto';
@@ -7,47 +7,58 @@ type CardWithAccount = Prisma.CardGetPayload<{
   include: { account: true };
 }>;
 
+type TransactionWithCards = Prisma.TransactionGetPayload<{
+  select: {
+    id: true;
+    amount: true;
+    currency: true;
+    description: true;
+    fromCard: { select: { cardNumber: true } };
+    toCard: { select: { cardNumber: true } };
+    createdAt: true;
+  };
+}>;
+
 @Injectable()
 export class TransactionsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private readonly transactionSelect = {
+    id: true,
+    amount: true,
+    currency: true,
+    description: true,
+    fromCard: {
+      select: {
+        cardNumber: true,
+      },
+    },
+    toCard: {
+      select: {
+        cardNumber: true,
+      },
+    },
+    createdAt: true,
+  } as const;
+
+  private mapToDto(transaction: TransactionWithCards): TransactionDto {
+    return {
+      id: transaction.id,
+      amount: Number(transaction.amount),
+      currency: transaction.currency,
+      fromCardNumber: transaction.fromCard.cardNumber,
+      toCardNumber: transaction.toCard.cardNumber,
+      description: transaction.description || undefined,
+      createdAt: transaction.createdAt,
+    };
+  }
+
   async getAllTransactions(): Promise<TransactionDto[]> {
     const transactions = await this.prisma.transaction.findMany({
-      select: {
-        id: true,
-        amount: true,
-        currency: true,
-        description: true,
-        fromCard: {
-          select: {
-            cardNumber: true,
-          },
-        },
-        toCard: {
-          select: {
-            cardNumber: true,
-          },
-        },
-        createdAt: true,
-      },
+      select: this.transactionSelect,
     });
 
-    return transactions.map((transaction) => {
-      const dto: TransactionDto = {
-        id: transaction.id,
-        amount: Number(transaction.amount),
-        currency: transaction.currency,
-        fromCardNumber: transaction.fromCard.cardNumber,
-        toCardNumber: transaction.toCard.cardNumber,
-        createdAt: transaction.createdAt,
-      };
-
-      if (transaction.description) {
-        dto.description = transaction.description;
-      }
-
-      return dto;
-    });
+    return transactions.map((transaction) => this.mapToDto(transaction));
   }
 
   async getTransactionsByCardId(cardId: string): Promise<TransactionDto[]> {
@@ -55,41 +66,10 @@ export class TransactionsRepository {
       where: {
         OR: [{ fromCardId: cardId }, { toCardId: cardId }],
       },
-      select: {
-        id: true,
-        amount: true,
-        currency: true,
-        description: true,
-        fromCard: {
-          select: {
-            cardNumber: true,
-          },
-        },
-        toCard: {
-          select: {
-            cardNumber: true,
-          },
-        },
-        createdAt: true,
-      },
+      select: this.transactionSelect,
     });
 
-    return transactions.map((transaction) => {
-      const dto: TransactionDto = {
-        id: transaction.id,
-        amount: Number(transaction.amount),
-        currency: transaction.currency,
-        fromCardNumber: transaction.fromCard.cardNumber,
-        toCardNumber: transaction.toCard.cardNumber,
-        createdAt: transaction.createdAt,
-      };
-
-      if (transaction.description) {
-        dto.description = transaction.description;
-      }
-
-      return dto;
-    });
+    return transactions.map((transaction) => this.mapToDto(transaction));
   }
 
   async getTransactionsByCardNumber(
@@ -97,86 +77,25 @@ export class TransactionsRepository {
   ): Promise<TransactionDto[]> {
     const transactions = await this.prisma.transaction.findMany({
       where: {
-        OR: [
-          { fromCard: { cardNumber: cardNumber } },
-          { toCard: { cardNumber: cardNumber } },
-        ],
+        OR: [{ fromCard: { cardNumber } }, { toCard: { cardNumber } }],
       },
-      select: {
-        id: true,
-        amount: true,
-        currency: true,
-        description: true,
-        fromCard: {
-          select: {
-            cardNumber: true,
-          },
-        },
-        toCard: {
-          select: {
-            cardNumber: true,
-          },
-        },
-        createdAt: true,
-      },
+      select: this.transactionSelect,
     });
 
-    return transactions.map((transaction) => {
-      const dto: TransactionDto = {
-        id: transaction.id,
-        amount: Number(transaction.amount),
-        currency: transaction.currency,
-        fromCardNumber: transaction.fromCard.cardNumber,
-        toCardNumber: transaction.toCard.cardNumber,
-        createdAt: transaction.createdAt,
-      };
-
-      if (transaction.description) {
-        dto.description = transaction.description;
-      }
-
-      return dto;
-    });
+    return transactions.map((transaction) => this.mapToDto(transaction));
   }
 
-  async getTransactionById(id: string): Promise<TransactionDto | null> {
+  async getTransactionById(id: string): Promise<TransactionDto> {
     const transaction = await this.prisma.transaction.findUnique({
       where: { id },
-      select: {
-        id: true,
-        amount: true,
-        currency: true,
-        description: true,
-        fromCard: {
-          select: {
-            cardNumber: true,
-          },
-        },
-        toCard: {
-          select: {
-            cardNumber: true,
-          },
-        },
-        createdAt: true,
-      },
+      select: this.transactionSelect,
     });
 
     if (!transaction) {
-      return null;
+      throw new NotFoundException(`Transaction with id ${id} not found`);
     }
-    const dto: TransactionDto = {
-      id: transaction.id,
-      amount: Number(transaction.amount),
-      currency: transaction.currency,
-      fromCardNumber: transaction.fromCard.cardNumber,
-      toCardNumber: transaction.toCard.cardNumber,
-      createdAt: transaction.createdAt,
-    };
 
-    if (transaction.description) {
-      dto.description = transaction.description;
-    }
-    return dto;
+    return this.mapToDto(transaction);
   }
 
   async getCardWithAccount(
@@ -218,35 +137,10 @@ export class TransactionsRepository {
           fromCardId: fromCard.id,
           toCardId: toCard.id,
         },
-        select: {
-          id: true,
-          amount: true,
-          currency: true,
-          description: true,
-          fromCard: {
-            select: { cardNumber: true },
-          },
-          toCard: {
-            select: { cardNumber: true },
-          },
-          createdAt: true,
-        },
+        select: this.transactionSelect,
       });
 
-      const result: TransactionDto = {
-        id: transaction.id,
-        amount: Number(transaction.amount),
-        currency: transaction.currency,
-        fromCardNumber: transaction.fromCard.cardNumber,
-        toCardNumber: transaction.toCard.cardNumber,
-        createdAt: transaction.createdAt,
-      };
-
-      if (transaction.description) {
-        result.description = transaction.description;
-      }
-
-      return result;
+      return this.mapToDto(transaction);
     });
   }
 }

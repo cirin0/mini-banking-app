@@ -13,8 +13,6 @@ export class TransactionsController {
   async createTransaction(
     @Body() createTransactionDto: CreateTransactionDto,
   ): Promise<TransactionDto> {
-    console.log(createTransactionDto.toCardNumber);
-
     return this.transactionsService.createTransaction(createTransactionDto);
   }
 
@@ -26,9 +24,7 @@ export class TransactionsController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  async getTransactionById(
-    @Param('id') id: string,
-  ): Promise<TransactionDto | null> {
+  async getTransactionById(@Param('id') id: string): Promise<TransactionDto> {
     return this.transactionsService.getTransactionById(id);
   }
 

@@ -19,12 +19,9 @@ export class TransactionsService {
 
     const fromCard =
       await this.transactionRepository.getCardWithAccount(fromCardNumber);
-    console.log(fromCard);
 
     const toCard =
       await this.transactionRepository.getCardWithAccount(toCardNumber);
-
-    console.log(toCard);
 
     if (!fromCard) {
       throw new NotFoundException(
@@ -36,8 +33,16 @@ export class TransactionsService {
       throw new NotFoundException(`Card with number ${toCardNumber} not found`);
     }
 
-    if (Number(fromCard.account.balance) < amount) {
+    if (!fromCard.account || !toCard.account) {
+      throw new BadRequestException('Both cards must be linked to accounts');
+    }
+
+    if (fromCard.account.balance.lt(amount)) {
       throw new BadRequestException('Insufficient funds for this transaction');
+    }
+
+    if (amount < 0.1) {
+      throw new BadRequestException('Amount must be at least 0.1');
     }
 
     if (
@@ -62,7 +67,7 @@ export class TransactionsService {
     return this.transactionRepository.getAllTransactions();
   }
 
-  async getTransactionById(id: string): Promise<TransactionDto | null> {
+  async getTransactionById(id: string): Promise<TransactionDto> {
     return this.transactionRepository.getTransactionById(id);
   }
 
