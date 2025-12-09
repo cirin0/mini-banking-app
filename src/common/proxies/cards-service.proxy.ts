@@ -10,13 +10,15 @@ import { CardType, PaymentSystem } from '@prisma/client';
 import { CardDto } from '../../modules/cards/dto/card.dto';
 import { CardWithCvvDto } from '../../modules/cards/dto/card-with-cvv.dto';
 import { BaseLoggerProxy } from './base-logger.proxy';
-import { MonitoringService } from '../monitoring/monitoring.service';
+import { MonitoringService } from 'src/modules/monitoring/monitoring.service';
 
 @Injectable()
 export class CardsServiceProxy extends BaseLoggerProxy {
   constructor(
     private readonly cardsService: CardsService,
-    @Optional() @Inject(MonitoringService) monitoringService?: MonitoringService,
+    @Optional()
+    @Inject(MonitoringService)
+    monitoringService?: MonitoringService,
   ) {
     super('CardsService', monitoringService);
   }
@@ -40,7 +42,11 @@ export class CardsServiceProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!accountId || typeof accountId !== 'string') {
       const error = new BadRequestException('Invalid accountId parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid accountId');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid accountId',
+      );
       throw error;
     }
 
@@ -52,26 +58,38 @@ export class CardsServiceProxy extends BaseLoggerProxy {
 
     if (!paymentSystem || typeof paymentSystem !== 'string') {
       const error = new BadRequestException('Invalid paymentSystem parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid paymentSystem');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid paymentSystem',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Creating card for account ${accountId}`);
+      this.logOperation(
+        'info',
+        context,
+        `Creating card for account ${accountId}`,
+      );
       const result = await this.cardsService.createCardForAccount(
         accountId,
         cardType,
         paymentSystem,
       );
       this.logWithDuration(context, startTime, true);
-      this.logOperation('info', {
-        ...context,
-        metadata: {
-          ...context.metadata,
-          cardId: result.id,
-          cardNumber: this.maskCardNumber(result.cardNumber),
+      this.logOperation(
+        'info',
+        {
+          ...context,
+          metadata: {
+            ...context.metadata,
+            cardId: result.id,
+            cardNumber: this.maskCardNumber(result.cardNumber),
+          },
         },
-      }, `Card created successfully: ${result.id}`);
+        `Card created successfully: ${result.id}`,
+      );
       return result;
     } catch (error) {
       this.logWithDuration(context, startTime, false, error as Error);
@@ -116,12 +134,20 @@ export class CardsServiceProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!accountId || typeof accountId !== 'string') {
       const error = new BadRequestException('Invalid accountId parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid accountId');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid accountId',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Fetching cards for account ${accountId}`);
+      this.logOperation(
+        'info',
+        context,
+        `Fetching cards for account ${accountId}`,
+      );
       const result = await this.cardsService.getCardsByAccountId(accountId);
       this.logWithDuration(context, startTime, true);
       return result;
@@ -142,12 +168,20 @@ export class CardsServiceProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!cardNumber || typeof cardNumber !== 'string') {
       const error = new BadRequestException('Invalid cardNumber parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid cardNumber');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid cardNumber',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Fetching card by number ${this.maskCardNumber(cardNumber)}`);
+      this.logOperation(
+        'info',
+        context,
+        `Fetching card by number ${this.maskCardNumber(cardNumber)}`,
+      );
       const result = await this.cardsService.getCardByNumber(cardNumber);
       this.logWithDuration(context, startTime, true);
       return result;
@@ -196,12 +230,20 @@ export class CardsServiceProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!accountId || typeof accountId !== 'string') {
       const error = new BadRequestException('Invalid accountId parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid accountId');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid accountId',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Deleting cards for account ${accountId}`);
+      this.logOperation(
+        'info',
+        context,
+        `Deleting cards for account ${accountId}`,
+      );
       const result = await this.cardsService.deleteCardsByAccountId(accountId);
       this.logWithDuration(context, startTime, true);
       return result;
@@ -244,42 +286,58 @@ export class CardsServiceProxy extends BaseLoggerProxy {
     }
 
     // Безпека: додаткове логування спроби доступу до CVV
-    this.logOperation('warn', {
-      ...context,
-      metadata: {
-        ...context.metadata,
-        securityEvent: 'CVV_ACCESS_ATTEMPT',
-      },
-    }, `SECURITY: Attempting to access CVV for card ${cardId} by user ${userId}`);
-
-    try {
-      const result = await this.cardsService.getCvvForCard(cardId, password, userId);
-      
-      // Безпека: логування успішного доступу до CVV
-      this.logOperation('warn', {
+    this.logOperation(
+      'warn',
+      {
         ...context,
         metadata: {
           ...context.metadata,
-          securityEvent: 'CVV_ACCESS_SUCCESS',
-          cardNumber: this.maskCardNumber(result.cardNumber),
+          securityEvent: 'CVV_ACCESS_ATTEMPT',
         },
-      }, `SECURITY: CVV accessed successfully for card ${this.maskCardNumber(result.cardNumber)} by user ${userId}`);
-      
+      },
+      `SECURITY: Attempting to access CVV for card ${cardId} by user ${userId}`,
+    );
+
+    try {
+      const result = await this.cardsService.getCvvForCard(
+        cardId,
+        password,
+        userId,
+      );
+
+      // Безпека: логування успішного доступу до CVV
+      this.logOperation(
+        'warn',
+        {
+          ...context,
+          metadata: {
+            ...context.metadata,
+            securityEvent: 'CVV_ACCESS_SUCCESS',
+            cardNumber: this.maskCardNumber(result.cardNumber),
+          },
+        },
+        `SECURITY: CVV accessed successfully for card ${this.maskCardNumber(result.cardNumber)} by user ${userId}`,
+      );
+
       this.logWithDuration(context, startTime, true);
       return result;
     } catch (error) {
       // Безпека: логування невдалої спроби доступу
       if (error instanceof ForbiddenException) {
-        this.logOperation('warn', {
-          ...context,
-          metadata: {
-            ...context.metadata,
-            securityEvent: 'CVV_ACCESS_DENIED',
-            reason: error.message,
+        this.logOperation(
+          'warn',
+          {
+            ...context,
+            metadata: {
+              ...context.metadata,
+              securityEvent: 'CVV_ACCESS_DENIED',
+              reason: error.message,
+            },
           },
-        }, `SECURITY: CVV access denied for card ${cardId} by user ${userId}`);
+          `SECURITY: CVV access denied for card ${cardId} by user ${userId}`,
+        );
       }
-      
+
       this.logWithDuration(context, startTime, false, error as Error);
       throw error;
     }
@@ -292,4 +350,3 @@ export class CardsServiceProxy extends BaseLoggerProxy {
     return '****' + cardNumber.slice(-4);
   }
 }
-

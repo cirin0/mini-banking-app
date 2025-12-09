@@ -10,7 +10,7 @@ import { TransactionDto } from '../../modules/transactions/dto/transaction.dto';
 import { CreateTransactionDto } from '../../modules/transactions/dto/create-transaction.dto';
 import { BaseLoggerProxy } from './base-logger.proxy';
 import { TransactionsRepositoryProxy } from './transactions-repository.proxy';
-import { MonitoringService } from '../monitoring/monitoring.service';
+import { MonitoringService } from 'src/modules/monitoring/monitoring.service';
 
 @Injectable()
 export class TransactionsServiceProxy extends BaseLoggerProxy {
@@ -20,7 +20,9 @@ export class TransactionsServiceProxy extends BaseLoggerProxy {
   constructor(
     private readonly transactionsService: TransactionsService,
     private readonly transactionsRepository: TransactionsRepositoryProxy,
-    @Optional() @Inject(MonitoringService) monitoringService?: MonitoringService,
+    @Optional()
+    @Inject(MonitoringService)
+    monitoringService?: MonitoringService,
   ) {
     super('TransactionsService', monitoringService);
   }
@@ -52,7 +54,11 @@ export class TransactionsServiceProxy extends BaseLoggerProxy {
         const error = new BadRequestException(
           `Transaction amount exceeds maximum limit of ${this.MAX_TRANSACTION_AMOUNT}`,
         );
-        this.logOperation('warn', context, 'Validation failed: amount exceeds maximum');
+        this.logOperation(
+          'warn',
+          context,
+          'Validation failed: amount exceeds maximum',
+        );
         throw error;
       }
 
@@ -61,7 +67,11 @@ export class TransactionsServiceProxy extends BaseLoggerProxy {
         const error = new BadRequestException(
           `Transaction amount must be at least ${this.MIN_TRANSACTION_AMOUNT}`,
         );
-        this.logOperation('warn', context, 'Validation failed: amount below minimum');
+        this.logOperation(
+          'warn',
+          context,
+          'Validation failed: amount below minimum',
+        );
         throw error;
       }
 
@@ -72,19 +82,22 @@ export class TransactionsServiceProxy extends BaseLoggerProxy {
 
       this.logOperation('info', context, 'Creating transaction');
 
-      const result = await this.transactionsService.createTransaction(
-        createTransactionDto,
-      );
+      const result =
+        await this.transactionsService.createTransaction(createTransactionDto);
 
       this.logWithDuration(context, startTime, true);
-      this.logOperation('info', {
-        ...context,
-        metadata: {
-          ...context.metadata,
-          transactionId: result.id,
-          success: true,
+      this.logOperation(
+        'info',
+        {
+          ...context,
+          metadata: {
+            ...context.metadata,
+            transactionId: result.id,
+            success: true,
+          },
         },
-      }, `Transaction created successfully: ${result.id}`);
+        `Transaction created successfully: ${result.id}`,
+      );
 
       return result;
     } catch (error) {
@@ -122,7 +135,11 @@ export class TransactionsServiceProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!id || typeof id !== 'string') {
       const error = new BadRequestException('Invalid transaction id parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid transaction id');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid transaction id',
+      );
       throw error;
     }
 
@@ -153,8 +170,13 @@ export class TransactionsServiceProxy extends BaseLoggerProxy {
     }
 
     try {
-      this.logOperation('info', context, `Fetching transactions for card ${cardId}`);
-      const result = await this.transactionsService.getTransactionsByCardId(cardId);
+      this.logOperation(
+        'info',
+        context,
+        `Fetching transactions for card ${cardId}`,
+      );
+      const result =
+        await this.transactionsService.getTransactionsByCardId(cardId);
       this.logWithDuration(context, startTime, true);
       return result;
     } catch (error) {
@@ -176,13 +198,22 @@ export class TransactionsServiceProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!cardNumber || typeof cardNumber !== 'string') {
       const error = new BadRequestException('Invalid cardNumber parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid cardNumber');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid cardNumber',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Fetching transactions for card ${this.maskCardNumber(cardNumber)}`);
-      const result = await this.transactionsService.getTransactionsByCardNumber(cardNumber);
+      this.logOperation(
+        'info',
+        context,
+        `Fetching transactions for card ${this.maskCardNumber(cardNumber)}`,
+      );
+      const result =
+        await this.transactionsService.getTransactionsByCardNumber(cardNumber);
       this.logWithDuration(context, startTime, true);
       return result;
     } catch (error) {
@@ -194,11 +225,17 @@ export class TransactionsServiceProxy extends BaseLoggerProxy {
   private async validateUserAccess(
     userId: string,
     cardNumber: string,
-    context: any,
+    context: {
+      operation: string;
+      module: string;
+      userId?: string;
+      metadata: Record<string, any>;
+    },
   ): Promise<void> {
     try {
-      const card = await this.transactionsRepository.getCardWithAccount(cardNumber);
-      
+      const card =
+        await this.transactionsRepository.getCardWithAccount(cardNumber);
+
       if (!card) {
         // Якщо картки немає, валідація пройде в основному сервісі
         return;
@@ -208,14 +245,18 @@ export class TransactionsServiceProxy extends BaseLoggerProxy {
         const error = new ForbiddenException(
           'You do not have permission to perform transactions from this card',
         );
-        this.logOperation('warn', {
-          ...context,
-          metadata: {
-            ...context.metadata,
-            attemptedCardOwner: card.account.userId,
-            currentUserId: userId,
+        this.logOperation(
+          'warn',
+          {
+            ...context,
+            metadata: {
+              ...context.metadata,
+              attemptedCardOwner: card.account.userId,
+              currentUserId: userId,
+            },
           },
-        }, 'Security check failed: user does not own the card');
+          'Security check failed: user does not own the card',
+        );
         throw error;
       }
     } catch (error) {
@@ -234,4 +275,3 @@ export class TransactionsServiceProxy extends BaseLoggerProxy {
     return '****' + cardNumber.slice(-4);
   }
 }
-

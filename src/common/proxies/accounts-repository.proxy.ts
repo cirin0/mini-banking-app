@@ -1,9 +1,14 @@
-import { Injectable, BadRequestException, Inject, Optional } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Inject,
+  Optional,
+} from '@nestjs/common';
 import { AccountsRepository } from '../../modules/accounts/accounts.repository';
 import { Account, Currency } from '@prisma/client';
 import { Account as AccountModel } from '../../modules/accounts/accounts.model';
 import { BaseLoggerProxy } from './base-logger.proxy';
-import { MonitoringService } from '../monitoring/monitoring.service';
+import { MonitoringService } from 'src/modules/monitoring/monitoring.service';
 
 @Injectable()
 export class AccountsRepositoryProxy extends BaseLoggerProxy {
@@ -12,7 +17,9 @@ export class AccountsRepositoryProxy extends BaseLoggerProxy {
 
   constructor(
     private readonly accountsRepository: AccountsRepository,
-    @Optional() @Inject(MonitoringService) monitoringService?: MonitoringService,
+    @Optional()
+    @Inject(MonitoringService)
+    monitoringService?: MonitoringService,
   ) {
     super('AccountsRepository', monitoringService);
   }
@@ -31,7 +38,11 @@ export class AccountsRepositoryProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!accountId || typeof accountId !== 'string') {
       const error = new BadRequestException('Invalid accountId parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid accountId');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid accountId',
+      );
       throw error;
     }
 
@@ -46,7 +57,11 @@ export class AccountsRepositoryProxy extends BaseLoggerProxy {
       const error = new BadRequestException(
         `Deposit amount exceeds maximum limit of ${this.MAX_DEPOSIT_AMOUNT}`,
       );
-      this.logOperation('warn', context, 'Validation failed: amount exceeds maximum');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: amount exceeds maximum',
+      );
       throw error;
     }
 
@@ -55,24 +70,36 @@ export class AccountsRepositoryProxy extends BaseLoggerProxy {
       const error = new BadRequestException(
         `Deposit amount must be at least ${this.MIN_DEPOSIT_AMOUNT}`,
       );
-      this.logOperation('warn', context, 'Validation failed: amount below minimum');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: amount below minimum',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Depositing ${amount} to account ${accountId}`);
+      this.logOperation(
+        'info',
+        context,
+        `Depositing ${amount} to account ${accountId}`,
+      );
       const result = await this.accountsRepository.deposit(accountId, amount);
-      
+
       // Моніторинг змін балансу
-      this.logOperation('info', {
-        ...context,
-        metadata: {
-          ...context.metadata,
-          newBalance: Number(result.balance),
-          previousBalance: Number(result.balance) - amount,
+      this.logOperation(
+        'info',
+        {
+          ...context,
+          metadata: {
+            ...context.metadata,
+            newBalance: Number(result.balance),
+            previousBalance: Number(result.balance) - amount,
+          },
         },
-      }, `Deposit successful. New balance: ${result.balance}`);
-      
+        `Deposit successful. New balance: ${result.balance.toString()}`,
+      );
+
       this.logWithDuration(context, startTime, true);
       return result;
     } catch (error) {
@@ -104,16 +131,24 @@ export class AccountsRepositoryProxy extends BaseLoggerProxy {
     }
 
     try {
-      this.logOperation('info', context, `Creating account for user ${userId} with currency ${currency}`);
+      this.logOperation(
+        'info',
+        context,
+        `Creating account for user ${userId} with currency ${currency}`,
+      );
       const result = await this.accountsRepository.create(userId, currency);
       this.logWithDuration(context, startTime, true);
-      this.logOperation('info', {
-        ...context,
-        metadata: {
-          ...context.metadata,
-          accountId: result.id,
+      this.logOperation(
+        'info',
+        {
+          ...context,
+          metadata: {
+            ...context.metadata,
+            accountId: result.id,
+          },
         },
-      }, `Account created successfully: ${result.id}`);
+        `Account created successfully: ${result.id}`,
+      );
       return result;
     } catch (error) {
       this.logWithDuration(context, startTime, false, error as Error);
@@ -137,7 +172,11 @@ export class AccountsRepositoryProxy extends BaseLoggerProxy {
     }
 
     try {
-      this.logOperation('info', context, `Fetching accounts for user ${userId}`);
+      this.logOperation(
+        'info',
+        context,
+        `Fetching accounts for user ${userId}`,
+      );
       const result = await this.accountsRepository.findByUserId(userId);
       this.logWithDuration(context, startTime, true);
       return result;
@@ -158,7 +197,11 @@ export class AccountsRepositoryProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!id || typeof id !== 'string') {
       const error = new BadRequestException('Invalid account id parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid account id');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid account id',
+      );
       throw error;
     }
 
@@ -189,7 +232,11 @@ export class AccountsRepositoryProxy extends BaseLoggerProxy {
     }
 
     try {
-      this.logOperation('info', context, `Counting accounts for user ${userId}`);
+      this.logOperation(
+        'info',
+        context,
+        `Counting accounts for user ${userId}`,
+      );
       const result = await this.accountsRepository.userAccountCount(userId);
       this.logWithDuration(context, startTime, true);
       return result;
@@ -225,8 +272,15 @@ export class AccountsRepositoryProxy extends BaseLoggerProxy {
     }
 
     try {
-      this.logOperation('info', context, `Checking existing account in ${currency} for user ${userId}`);
-      const result = await this.accountsRepository.existingAccountInCurrency(userId, currency);
+      this.logOperation(
+        'info',
+        context,
+        `Checking existing account in ${currency} for user ${userId}`,
+      );
+      const result = await this.accountsRepository.existingAccountInCurrency(
+        userId,
+        currency,
+      );
       this.logWithDuration(context, startTime, true);
       return result;
     } catch (error) {
@@ -235,4 +289,3 @@ export class AccountsRepositoryProxy extends BaseLoggerProxy {
     }
   }
 }
-

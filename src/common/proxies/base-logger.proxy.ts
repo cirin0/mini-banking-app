@@ -1,5 +1,5 @@
 import { Logger, Optional, Inject } from '@nestjs/common';
-import { MonitoringService } from '../monitoring/monitoring.service';
+import { MonitoringService } from 'src/modules/monitoring/monitoring.service';
 
 export interface LogContext {
   userId?: string;
@@ -14,7 +14,9 @@ export class BaseLoggerProxy {
 
   constructor(
     moduleName: string,
-    @Optional() @Inject(MonitoringService) monitoringService?: MonitoringService,
+    @Optional()
+    @Inject(MonitoringService)
+    monitoringService?: MonitoringService,
   ) {
     this.logger = new Logger(`Proxy:${moduleName}`);
     this.monitoringService = monitoringService;
@@ -82,4 +84,3 @@ export class BaseLoggerProxy {
     }
   }
 }
-

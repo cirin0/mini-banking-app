@@ -9,13 +9,15 @@ import { AccountsService } from '../../modules/accounts/accounts.service';
 import { Account, Currency } from '@prisma/client';
 import { Account as AccountModel } from '../../modules/accounts/accounts.model';
 import { BaseLoggerProxy } from './base-logger.proxy';
-import { MonitoringService } from '../monitoring/monitoring.service';
+import { MonitoringService } from 'src/modules/monitoring/monitoring.service';
 
 @Injectable()
 export class AccountsServiceProxy extends BaseLoggerProxy {
   constructor(
     private readonly accountsService: AccountsService,
-    @Optional() @Inject(MonitoringService) monitoringService?: MonitoringService,
+    @Optional()
+    @Inject(MonitoringService)
+    monitoringService?: MonitoringService,
   ) {
     super('AccountsService', monitoringService);
   }
@@ -46,33 +48,48 @@ export class AccountsServiceProxy extends BaseLoggerProxy {
     }
 
     try {
-      this.logOperation('info', context, `Creating account for user ${userId} with currency ${currency}`);
-      const result = await this.accountsService.createAccountForUser(userId, currency);
-      
+      this.logOperation(
+        'info',
+        context,
+        `Creating account for user ${userId} with currency ${currency}`,
+      );
+      const result = await this.accountsService.createAccountForUser(
+        userId,
+        currency,
+      );
+
       // Моніторинг створення рахунків
-      this.logOperation('info', {
-        ...context,
-        metadata: {
-          ...context.metadata,
-          accountId: result.id,
-          success: true,
+      this.logOperation(
+        'info',
+        {
+          ...context,
+          metadata: {
+            ...context.metadata,
+            accountId: result.id,
+            success: true,
+          },
         },
-      }, `Account created successfully: ${result.id}`);
-      
+        `Account created successfully: ${result.id}`,
+      );
+
       this.logWithDuration(context, startTime, true);
       return result;
     } catch (error) {
       // Логування помилок валідації лімітів
       if (error instanceof ForbiddenException) {
-        this.logOperation('warn', {
-          ...context,
-          metadata: {
-            ...context.metadata,
-            validationError: error.message,
+        this.logOperation(
+          'warn',
+          {
+            ...context,
+            metadata: {
+              ...context.metadata,
+              validationError: error.message,
+            },
           },
-        }, `Account creation failed: ${error.message}`);
+          `Account creation failed: ${error.message}`,
+        );
       }
-      
+
       this.logWithDuration(context, startTime, false, error as Error);
       throw error;
     }
@@ -94,7 +111,11 @@ export class AccountsServiceProxy extends BaseLoggerProxy {
     }
 
     try {
-      this.logOperation('info', context, `Fetching accounts for user ${userId}`);
+      this.logOperation(
+        'info',
+        context,
+        `Fetching accounts for user ${userId}`,
+      );
       const result = await this.accountsService.getUserAccounts(userId);
       this.logWithDuration(context, startTime, true);
       return result;
@@ -115,7 +136,11 @@ export class AccountsServiceProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!id || typeof id !== 'string') {
       const error = new BadRequestException('Invalid account id parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid account id');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid account id',
+      );
       throw error;
     }
 
@@ -149,7 +174,11 @@ export class AccountsServiceProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!accountId || typeof accountId !== 'string') {
       const error = new BadRequestException('Invalid accountId parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid accountId');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid accountId',
+      );
       throw error;
     }
 
@@ -166,40 +195,51 @@ export class AccountsServiceProxy extends BaseLoggerProxy {
     }
 
     try {
-      this.logOperation('info', context, `Depositing ${amount} to account ${accountId} by user ${userId}`);
+      this.logOperation(
+        'info',
+        context,
+        `Depositing ${amount} to account ${accountId} by user ${userId}`,
+      );
       const result = await this.accountsService.depositToAccount(
         accountId,
         amount,
         userId,
       );
-      
+
       // Моніторинг операцій депозиту
-      this.logOperation('info', {
-        ...context,
-        metadata: {
-          ...context.metadata,
-          newBalance: Number(result.balance),
-          success: true,
+      this.logOperation(
+        'info',
+        {
+          ...context,
+          metadata: {
+            ...context.metadata,
+            newBalance: Number(result.balance),
+            success: true,
+          },
         },
-      }, `Deposit successful. New balance: ${result.balance}`);
-      
+        `Deposit successful. New balance: ${result.balance.toString()}`,
+      );
+
       this.logWithDuration(context, startTime, true);
       return result;
     } catch (error) {
       // Логування помилок безпеки
       if (error instanceof ForbiddenException) {
-        this.logOperation('warn', {
-          ...context,
-          metadata: {
-            ...context.metadata,
-            securityError: error.message,
+        this.logOperation(
+          'warn',
+          {
+            ...context,
+            metadata: {
+              ...context.metadata,
+              securityError: error.message,
+            },
           },
-        }, `Security check failed: ${error.message}`);
+          `Security check failed: ${error.message}`,
+        );
       }
-      
+
       this.logWithDuration(context, startTime, false, error as Error);
       throw error;
     }
   }
 }
-
