@@ -4,15 +4,15 @@ import { PrismaService } from 'prisma/prisma.service';
 import { CardDto } from './dto/card.dto';
 import { generateValidCardNumber } from 'src/common/utils/card-validator.util';
 import { encryptCvv } from 'src/common/utils/crypto.util';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class CardsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private generateCVV(): string {
-    return Array.from({ length: 3 }, () => Math.floor(Math.random() * 10)).join(
-      '',
-    );
+    // Use a cryptographically secure random number generator for each digit
+    return Array.from({ length: 3 }, () => crypto.randomInt(0, 10)).join('');
   }
 
   async create(
