@@ -4,14 +4,17 @@ import { TransactionsRepository } from './transactions.repository';
 import { TransactionsRepositoryProxy } from '../../common/proxies/transactions-repository.proxy';
 import { TransactionsServiceProxy } from '../../common/proxies/transactions-service.proxy';
 import { TransactionsController } from './transactions.controller';
-import { MonitoringService } from '../../common/monitoring/monitoring.service';
+import { MonitoringService } from '../monitoring/monitoring.service';
 
 @Module({
   providers: [
     TransactionsRepository,
     {
       provide: TransactionsRepositoryProxy,
-      useFactory: (repository: TransactionsRepository, monitoring?: MonitoringService) => {
+      useFactory: (
+        repository: TransactionsRepository,
+        monitoring?: MonitoringService,
+      ) => {
         return new TransactionsRepositoryProxy(repository, monitoring);
       },
       inject: [TransactionsRepository, MonitoringService],
@@ -32,7 +35,11 @@ import { MonitoringService } from '../../common/monitoring/monitoring.service';
       ) => {
         return new TransactionsServiceProxy(service, repository, monitoring);
       },
-      inject: [TransactionsService, TransactionsRepositoryProxy, MonitoringService],
+      inject: [
+        TransactionsService,
+        TransactionsRepositoryProxy,
+        MonitoringService,
+      ],
     },
   ],
   controllers: [TransactionsController],

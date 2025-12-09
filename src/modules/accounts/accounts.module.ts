@@ -4,14 +4,17 @@ import { AccountsRepository } from './accounts.repository';
 import { AccountsRepositoryProxy } from '../../common/proxies/accounts-repository.proxy';
 import { AccountsServiceProxy } from '../../common/proxies/accounts-service.proxy';
 import { AccountsController } from './accounts.controller';
-import { MonitoringService } from '../../common/monitoring/monitoring.service';
+import { MonitoringService } from '../monitoring/monitoring.service';
 
 @Module({
   providers: [
     AccountsRepository,
     {
       provide: AccountsRepositoryProxy,
-      useFactory: (repository: AccountsRepository, monitoring?: MonitoringService) => {
+      useFactory: (
+        repository: AccountsRepository,
+        monitoring?: MonitoringService,
+      ) => {
         return new AccountsRepositoryProxy(repository, monitoring);
       },
       inject: [AccountsRepository, MonitoringService],
@@ -25,7 +28,10 @@ import { MonitoringService } from '../../common/monitoring/monitoring.service';
     },
     {
       provide: AccountsServiceProxy,
-      useFactory: (service: AccountsService, monitoring?: MonitoringService) => {
+      useFactory: (
+        service: AccountsService,
+        monitoring?: MonitoringService,
+      ) => {
         return new AccountsServiceProxy(service, monitoring);
       },
       inject: [AccountsService, MonitoringService],
