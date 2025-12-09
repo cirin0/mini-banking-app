@@ -1,15 +1,22 @@
-import { Injectable, BadRequestException, Inject, Optional } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Inject,
+  Optional,
+} from '@nestjs/common';
 import { CardsRepository } from '../../modules/cards/cards.repository';
 import { CardType, PaymentSystem } from '@prisma/client';
 import { CardDto } from '../../modules/cards/dto/card.dto';
 import { BaseLoggerProxy } from './base-logger.proxy';
-import { MonitoringService } from '../monitoring/monitoring.service';
+import { MonitoringService } from 'src/modules/monitoring/monitoring.service';
 
 @Injectable()
 export class CardsRepositoryProxy extends BaseLoggerProxy {
   constructor(
     private readonly cardsRepository: CardsRepository,
-    @Optional() @Inject(MonitoringService) monitoringService?: MonitoringService,
+    @Optional()
+    @Inject(MonitoringService)
+    monitoringService?: MonitoringService,
   ) {
     super('CardsRepository', monitoringService);
   }
@@ -33,7 +40,11 @@ export class CardsRepositoryProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!accountId || typeof accountId !== 'string') {
       const error = new BadRequestException('Invalid accountId parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid accountId');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid accountId',
+      );
       throw error;
     }
 
@@ -45,22 +56,38 @@ export class CardsRepositoryProxy extends BaseLoggerProxy {
 
     if (!paymentSystem || typeof paymentSystem !== 'string') {
       const error = new BadRequestException('Invalid paymentSystem parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid paymentSystem');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid paymentSystem',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Creating card for account ${accountId}`);
-      const result = await this.cardsRepository.create(accountId, cardType, paymentSystem);
+      this.logOperation(
+        'info',
+        context,
+        `Creating card for account ${accountId}`,
+      );
+      const result = await this.cardsRepository.create(
+        accountId,
+        cardType,
+        paymentSystem,
+      );
       this.logWithDuration(context, startTime, true);
-      this.logOperation('info', {
-        ...context,
-        metadata: {
-          ...context.metadata,
-          cardId: result.id,
-          cardNumber: this.maskCardNumber(result.cardNumber),
+      this.logOperation(
+        'info',
+        {
+          ...context,
+          metadata: {
+            ...context.metadata,
+            cardId: result.id,
+            cardNumber: this.maskCardNumber(result.cardNumber),
+          },
         },
-      }, `Card created successfully: ${result.id}`);
+        `Card created successfully: ${result.id}`,
+      );
       return result;
     } catch (error) {
       this.logWithDuration(context, startTime, false, error as Error);
@@ -79,13 +106,22 @@ export class CardsRepositoryProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!accountId || typeof accountId !== 'string') {
       const error = new BadRequestException('Invalid accountId parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid accountId');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid accountId',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Counting cards for account ${accountId}`);
-      const result = await this.cardsRepository.countCardsByAccountId(accountId);
+      this.logOperation(
+        'info',
+        context,
+        `Counting cards for account ${accountId}`,
+      );
+      const result =
+        await this.cardsRepository.countCardsByAccountId(accountId);
       this.logWithDuration(context, startTime, true);
       return result;
     } catch (error) {
@@ -131,12 +167,20 @@ export class CardsRepositoryProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!accountId || typeof accountId !== 'string') {
       const error = new BadRequestException('Invalid accountId parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid accountId');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid accountId',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Fetching cards for account ${accountId}`);
+      this.logOperation(
+        'info',
+        context,
+        `Fetching cards for account ${accountId}`,
+      );
       const result = await this.cardsRepository.findByAccountId(accountId);
       this.logWithDuration(context, startTime, true);
       return result;
@@ -157,12 +201,20 @@ export class CardsRepositoryProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!cardNumber || typeof cardNumber !== 'string') {
       const error = new BadRequestException('Invalid cardNumber parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid cardNumber');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid cardNumber',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Fetching card by number ${this.maskCardNumber(cardNumber)}`);
+      this.logOperation(
+        'info',
+        context,
+        `Fetching card by number ${this.maskCardNumber(cardNumber)}`,
+      );
       const result = await this.cardsRepository.findByCardNumber(cardNumber);
       this.logWithDuration(context, startTime, true);
       return result;
@@ -211,21 +263,33 @@ export class CardsRepositoryProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!accountId || typeof accountId !== 'string') {
       const error = new BadRequestException('Invalid accountId parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid accountId');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid accountId',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Deleting cards for account ${accountId}`);
+      this.logOperation(
+        'info',
+        context,
+        `Deleting cards for account ${accountId}`,
+      );
       const result = await this.cardsRepository.deleteByAccountId(accountId);
       this.logWithDuration(context, startTime, true);
-      this.logOperation('info', {
-        ...context,
-        metadata: {
-          ...context.metadata,
-          deletedCount: result.deletedCount,
+      this.logOperation(
+        'info',
+        {
+          ...context,
+          metadata: {
+            ...context.metadata,
+            deletedCount: result.deletedCount,
+          },
         },
-      }, `Deleted ${result.deletedCount} cards`);
+        `Deleted ${result.deletedCount} cards`,
+      );
       return result;
     } catch (error) {
       this.logWithDuration(context, startTime, false, error as Error);
@@ -255,22 +319,30 @@ export class CardsRepositoryProxy extends BaseLoggerProxy {
 
     try {
       // Безпека: логування спроби доступу до чутливих даних
-      this.logOperation('warn', context, `SECURITY: Attempting to access CVV for card ${cardId}`);
+      this.logOperation(
+        'warn',
+        context,
+        `SECURITY: Attempting to access CVV for card ${cardId}`,
+      );
       const result = await this.cardsRepository.findByIdWithHashedCvv(cardId);
       this.logWithDuration(context, startTime, true);
-      
+
       if (result) {
-        this.logOperation('warn', {
-          ...context,
-          metadata: {
-            ...context.metadata,
-            cardNumber: this.maskCardNumber(result.cardNumber),
-            accountId: result.account.id,
-            userId: result.account.userId,
+        this.logOperation(
+          'warn',
+          {
+            ...context,
+            metadata: {
+              ...context.metadata,
+              cardNumber: this.maskCardNumber(result.cardNumber),
+              accountId: result.account.id,
+              userId: result.account.userId,
+            },
           },
-        }, `SECURITY: CVV data accessed for card ${this.maskCardNumber(result.cardNumber)}`);
+          `SECURITY: CVV data accessed for card ${this.maskCardNumber(result.cardNumber)}`,
+        );
       }
-      
+
       return result;
     } catch (error) {
       this.logWithDuration(context, startTime, false, error as Error);
@@ -285,4 +357,3 @@ export class CardsRepositoryProxy extends BaseLoggerProxy {
     return '****' + cardNumber.slice(-4);
   }
 }
-

@@ -5,7 +5,7 @@ import { CardsRepositoryProxy } from '../../common/proxies/cards-repository.prox
 import { CardsServiceProxy } from '../../common/proxies/cards-service.proxy';
 import { CardsController } from './cards.controller';
 import { AuthRepository } from '../auth/auth.repository';
-import { MonitoringService } from '../../common/monitoring/monitoring.service';
+import { MonitoringService } from '../monitoring/monitoring.service';
 
 @Module({
   providers: [
@@ -13,7 +13,10 @@ import { MonitoringService } from '../../common/monitoring/monitoring.service';
     AuthRepository,
     {
       provide: CardsRepositoryProxy,
-      useFactory: (repository: CardsRepository, monitoring?: MonitoringService) => {
+      useFactory: (
+        repository: CardsRepository,
+        monitoring?: MonitoringService,
+      ) => {
         return new CardsRepositoryProxy(repository, monitoring);
       },
       inject: [CardsRepository, MonitoringService],

@@ -1,9 +1,14 @@
-import { Injectable, BadRequestException, Inject, Optional } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Inject,
+  Optional,
+} from '@nestjs/common';
 import { TransactionsRepository } from '../../modules/transactions/transactions.repository';
 import { TransactionDto } from '../../modules/transactions/dto/transaction.dto';
 import { Currency, Prisma } from '@prisma/client';
 import { BaseLoggerProxy } from './base-logger.proxy';
-import { MonitoringService } from '../monitoring/monitoring.service';
+import { MonitoringService } from 'src/modules/monitoring/monitoring.service';
 
 type CardWithAccount = Prisma.CardGetPayload<{
   include: { account: true };
@@ -13,7 +18,9 @@ type CardWithAccount = Prisma.CardGetPayload<{
 export class TransactionsRepositoryProxy extends BaseLoggerProxy {
   constructor(
     private readonly transactionsRepository: TransactionsRepository,
-    @Optional() @Inject(MonitoringService) monitoringService?: MonitoringService,
+    @Optional()
+    @Inject(MonitoringService)
+    monitoringService?: MonitoringService,
   ) {
     super('TransactionsRepository', monitoringService);
   }
@@ -52,8 +59,13 @@ export class TransactionsRepositoryProxy extends BaseLoggerProxy {
     }
 
     try {
-      this.logOperation('info', context, `Fetching transactions for card ${cardId}`);
-      const result = await this.transactionsRepository.getTransactionsByCardId(cardId);
+      this.logOperation(
+        'info',
+        context,
+        `Fetching transactions for card ${cardId}`,
+      );
+      const result =
+        await this.transactionsRepository.getTransactionsByCardId(cardId);
       this.logWithDuration(context, startTime, true);
       return result;
     } catch (error) {
@@ -75,13 +87,24 @@ export class TransactionsRepositoryProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!cardNumber || typeof cardNumber !== 'string') {
       const error = new BadRequestException('Invalid cardNumber parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid cardNumber');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid cardNumber',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Fetching transactions for card ${this.maskCardNumber(cardNumber)}`);
-      const result = await this.transactionsRepository.getTransactionsByCardNumber(cardNumber);
+      this.logOperation(
+        'info',
+        context,
+        `Fetching transactions for card ${this.maskCardNumber(cardNumber)}`,
+      );
+      const result =
+        await this.transactionsRepository.getTransactionsByCardNumber(
+          cardNumber,
+        );
       this.logWithDuration(context, startTime, true);
       return result;
     } catch (error) {
@@ -101,7 +124,11 @@ export class TransactionsRepositoryProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!id || typeof id !== 'string') {
       const error = new BadRequestException('Invalid transaction id parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid transaction id');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid transaction id',
+      );
       throw error;
     }
 
@@ -129,13 +156,22 @@ export class TransactionsRepositoryProxy extends BaseLoggerProxy {
     // Валідація параметрів
     if (!cardNumber || typeof cardNumber !== 'string') {
       const error = new BadRequestException('Invalid cardNumber parameter');
-      this.logOperation('warn', context, 'Validation failed: invalid cardNumber');
+      this.logOperation(
+        'warn',
+        context,
+        'Validation failed: invalid cardNumber',
+      );
       throw error;
     }
 
     try {
-      this.logOperation('info', context, `Fetching card with account for ${this.maskCardNumber(cardNumber)}`);
-      const result = await this.transactionsRepository.getCardWithAccount(cardNumber);
+      this.logOperation(
+        'info',
+        context,
+        `Fetching card with account for ${this.maskCardNumber(cardNumber)}`,
+      );
+      const result =
+        await this.transactionsRepository.getCardWithAccount(cardNumber);
       this.logWithDuration(context, startTime, true);
       return result;
     } catch (error) {
@@ -184,7 +220,11 @@ export class TransactionsRepositoryProxy extends BaseLoggerProxy {
     }
 
     try {
-      this.logOperation('info', context, `Executing transaction: ${amount} ${currency}`);
+      this.logOperation(
+        'info',
+        context,
+        `Executing transaction: ${amount} ${currency}`,
+      );
       const result = await this.transactionsRepository.executeTransaction(
         fromCard,
         toCard,
@@ -193,13 +233,17 @@ export class TransactionsRepositoryProxy extends BaseLoggerProxy {
         description,
       );
       this.logWithDuration(context, startTime, true);
-      this.logOperation('info', {
-        ...context,
-        metadata: {
-          ...context.metadata,
-          transactionId: result.id,
+      this.logOperation(
+        'info',
+        {
+          ...context,
+          metadata: {
+            ...context.metadata,
+            transactionId: result.id,
+          },
         },
-      }, `Transaction executed successfully: ${result.id}`);
+        `Transaction executed successfully: ${result.id}`,
+      );
       return result;
     } catch (error) {
       this.logWithDuration(context, startTime, false, error as Error);
@@ -214,4 +258,3 @@ export class TransactionsRepositoryProxy extends BaseLoggerProxy {
     return '****' + cardNumber.slice(-4);
   }
 }
-
