@@ -9,7 +9,7 @@ import {
   ForbiddenException,
   Req,
 } from '@nestjs/common';
-import { AccountsService } from './accounts.service';
+import { AccountsServiceProxy } from '../../common/proxies/accounts-service.proxy';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { DepositDto } from './dto/deposit.dto';
@@ -23,7 +23,7 @@ interface RequestWithUser extends Request {
 
 @Controller('accounts')
 export class AccountsController {
-  constructor(private readonly accountsService: AccountsService) {}
+  constructor(private readonly accountsService: AccountsServiceProxy) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)

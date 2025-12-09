@@ -9,7 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { CardsService } from './cards.service';
+import { CardsServiceProxy } from '../../common/proxies/cards-service.proxy';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateCardDto } from './dto/create-card.dto';
 import { GetCvvDto } from './dto/get-cvv.dto';
@@ -23,7 +23,7 @@ interface AuthenticatedRequest {
 
 @Controller('cards')
 export class CardsController {
-  constructor(private readonly cardsService: CardsService) {}
+  constructor(private readonly cardsService: CardsServiceProxy) {}
 
   @Post(':accountId')
   @UseGuards(JwtAuthGuard)
